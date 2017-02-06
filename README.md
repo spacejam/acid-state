@@ -1,6 +1,12 @@
 # acid-state
 rust transactional state library
 
+note: not atomic yet, coming soon
+
+currently suitable for rapid prototyping of simple stateful systems
+
+note: every op is O(n), so treat this as a poor man's DB for prototyping
+
 ```rust
 #[macro_use]
 extern crate acid_state;
