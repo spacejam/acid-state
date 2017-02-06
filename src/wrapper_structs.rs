@@ -11,7 +11,6 @@ use rustc_serialize::{Encodable, Decodable};
 use bincode::SizeLimit;
 use bincode::rustc_serialize::{encode, decode, DecodingResult};
 
-
 fn to_binary<T: Encodable>(s: &T) -> Vec<u8> {
     encode(s, SizeLimit::Infinite).unwrap()
 }
@@ -22,8 +21,8 @@ fn from_binary<T: Decodable>(encoded: Vec<u8>) -> DecodingResult<T> {
 
 #[derive(Debug, Clone)]
 pub struct Persistent<T: Encodable + Decodable> {
-    inner: Arc<Mutex<T>>,
-    name: String,
+    pub inner: Arc<Mutex<T>>,
+    pub name: String,
 }
 
 impl<T: Encodable + Decodable> Persistent<T> {
@@ -74,8 +73,8 @@ impl<'a, T: 'a + Encodable + Decodable> Txn<'a, T> {
 }
 
 pub struct Txn<'a, T: 'a + Encodable + Decodable> {
-    inner: MutexGuard<'a, T>,
-    name: String,
+    pub inner: MutexGuard<'a, T>,
+    pub name: String,
 }
 
 impl<'a, T: Encodable + Decodable + fmt::Debug> fmt::Debug for Txn<'a, T> {
@@ -101,58 +100,5 @@ impl<'a, T: 'a + Encodable + Decodable> Deref for Txn<'a, T> {
 impl<'a, T: 'a + Encodable + Decodable> DerefMut for Txn<'a, T> {
     fn deref_mut(&mut self) -> &mut MutexGuard<'a, T> {
         &mut self.inner
-    }
-}
-
-macro_rules! acid_state {
-    ($N:ident : $T:ty = $e:expr;) => {
-        use std::sync::{Arc as __ARC, Mutex as __MUTEX};
-        lazy_static!(
-            static ref $N : Persistent<$T> =
-                Persistent {
-                    inner: __ARC::new(__MUTEX::new($e)),
-                    name: format!("{}.acidstate", stringify!($N)).into(),
-                };
-        );
-    };
-    () => ()
-}
-
-macro_rules! acid {
-    ($head:ident . $($args:tt)*) => {
-        $head . handle() . $($args)* ; 
-    };
-    () => ()
-}
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::collections::HashMap;
-
-    #[derive(Debug, RustcEncodable, RustcDecodable)]
-    struct A {
-        i: u64,
-        m: HashMap<u64, String>,
-    }
-
-    acid_state! {
-        a: A = A {
-            i: 0,
-            m: HashMap::new(),
-        };
-    }
-
-    #[test]
-    fn it_works() {
-        println!("mutating a");
-        acid! {
-            a.m.insert(31, "yo".to_owned());
-        }
-        acid! {
-            a.i += 5;
-        }
-        println!("a is now {:?}", **a.handle());
     }
 }

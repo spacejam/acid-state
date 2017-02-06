@@ -2,8 +2,14 @@
 name = "acid-state"
 description = "easy persistence for rust"
 license = "Apache-2.0"
-version = "0.1.0"
+version = "0.2.3"
 authors = ["Tyler Neely <t@jujit.su>"]
+repository = "https://github.com/spacejam/acid-state"
+documentation = "https://docs.rs/acid-state/0.1.0/acid_state/index.html"
+
+[[test]]
+name = "test"
+path = "test/test.rs"
 
 [dependencies]
 rustc-serialize = "0.3"
