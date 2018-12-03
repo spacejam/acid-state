@@ -46,13 +46,12 @@
 
 pub use std::sync::{Arc as __ARC, Mutex as __MUTEX};
 
-#[macro_use]
+extern crate bincode;
 extern crate lazy_static;
 extern crate rustc_serialize;
-extern crate bincode;
 
 mod wrapper_structs;
-pub use wrapper_structs::{Persistent, Txn};
+pub use crate::wrapper_structs::{Persistent, Txn};
 
 #[macro_export]
 macro_rules! acid_state {

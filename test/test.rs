@@ -25,7 +25,7 @@ fn it_works() {
     acid! {
         (A => a, B => b, C => c) => {
             // A, B, C have been pulled off disk
-            let mut current = a.entry(key).or_insert(0);
+            let current = a.entry(key).or_insert(0);
             **b += 1;
             *current += 1;
             c.v += 1;
