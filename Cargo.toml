@@ -6,6 +6,7 @@ version = "0.2.3"
 authors = ["Tyler Neely <t@jujit.su>"]
 repository = "https://github.com/spacejam/acid-state"
 documentation = "https://docs.rs/acid-state/0.1.0/acid_state/index.html"
+edition = "2018"
 
 [[test]]
 name = "test"

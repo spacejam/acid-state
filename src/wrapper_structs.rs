@@ -2,14 +2,14 @@ use std::fmt;
 use std::fs;
 use std::io;
 use std::io::prelude::*;
-use std::path::PathBuf;
 use std::ops::{Deref, DerefMut};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex, MutexGuard};
 
-use rustc_serialize::{Encodable, Decodable};
+use rustc_serialize::{Decodable, Encodable};
 
+use bincode::rustc_serialize::{decode, encode, DecodingResult};
 use bincode::SizeLimit;
-use bincode::rustc_serialize::{encode, decode, DecodingResult};
 
 fn to_binary<T: Encodable>(s: &T) -> Vec<u8> {
     encode(s, SizeLimit::Infinite).unwrap()
@@ -26,13 +26,13 @@ pub struct Persistent<T: Encodable + Decodable> {
 }
 
 impl<T: Encodable + Decodable> Persistent<T> {
-    pub fn handle<'a>(&'a self) -> Txn<'a, T> {
+    pub fn handle(&self) -> Txn<T> {
         let mut inner = self.inner.lock().unwrap();
         if let Some(read) = self.read() {
             *inner = read;
         }
         Txn {
-            inner: inner,
+            inner,
             name: self.name.clone(),
         }
     }
@@ -56,7 +56,6 @@ impl<T: Encodable + Decodable> Persistent<T> {
     }
 }
 
-
 impl<'a, T: 'a + Encodable + Decodable> Txn<'a, T> {
     fn path(&self) -> PathBuf {
         self.name.clone().into()
@@ -67,7 +66,7 @@ impl<'a, T: 'a + Encodable + Decodable> Txn<'a, T> {
         from_binary::<T>(bytes.clone()).unwrap();
         let mut f = fs::File::create(self.path()).unwrap();
         let res = f.write_all(&*bytes);
-        f.sync_all();
+        f.sync_all()?;
         res
     }
 }
@@ -85,7 +84,7 @@ impl<'a, T: Encodable + Decodable + fmt::Debug> fmt::Debug for Txn<'a, T> {
 
 impl<'a, T: Encodable + Decodable> Drop for Txn<'a, T> {
     fn drop(&mut self) {
-        self.write();
+        let _ = self.write();
     }
 }
 
